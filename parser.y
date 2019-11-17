@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 int yylex();
 int get_symbol_value(char symbol);
@@ -13,15 +14,16 @@ int symbols[52];
 
 %start File;
 
-%union {int num; char id;}
+%union {float num; char id;}
 
 %token PRINT
 %token END
-%token ASSIGN PLUS MINUS TIMES DIVIDE
+%token ASSIGN PLUS MINUS TIMES DIVIDE POWER
 %token LEFT RIGHT
 %token <num> NUMBER
 %left PLUS MINUS
 %left TIMES DIVIDE
+%right POWER
 %token <id> IDENTIFIER
 %type <num> Expression Term
 %type <id> Assignment
@@ -36,15 +38,16 @@ Line: Expression END
 Line: Command END
 Line: Assignment END
 
-Command: PRINT Expression { printf("%d\n", $2); }
+Command: PRINT Expression { printf("%f\n", $2); }
 Assignment: IDENTIFIER ASSIGN Expression  { update_symbol_value($1,$3); }
 
 Expression: Term {$$ = $1;}
         | LEFT Expression RIGHT {$$ = $2;}
-       	| Expression PLUS Term {$$ = $1 + $3;}
-       	| Expression MINUS Term {$$ = $1 - $3;}
-       	| Expression TIMES Term {$$ = $1 * $3;}
-       	| Expression DIVIDE Term {$$ = $1 / $3;}
+       	| Expression PLUS Expression {$$ = $1 + $3;}
+       	| Expression MINUS Expression {$$ = $1 - $3;}
+       	| Expression TIMES Expression {$$ = $1 * $3;}
+       	| Expression DIVIDE Expression {$$ = $1 / $3;}
+       	| Expression POWER Expression {$$ = pow($1,$3);}
 
 Term: NUMBER {$$ = $1;}
 	| IDENTIFIER {$$ = get_symbol_value($1);}

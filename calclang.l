@@ -4,9 +4,10 @@ void yyerror (char *s);
 int yylex();
 %}
 
-white     [ \t]+
-alpha     [a-zA-Z]
-digit     [0-9]+
+white   [ \t]+
+alpha   [a-zA-Z]
+integer [0-9]+
+real    {integer}(\.{integer})?
 
 %%
 
@@ -21,9 +22,10 @@ digit     [0-9]+
 "-"         return MINUS;
 "*"         return TIMES;
 "/"         return DIVIDE;
+"^"         return POWER;
 
 {alpha}     {yylval.id = yytext[0]; return IDENTIFIER;}
-{digit}     {yylval.num = atoi(yytext); return NUMBER;}
+{real}      {yylval.num = atof(yytext); return NUMBER;}
 .           {yyerror ("Unexpected token");}
 
 %%
