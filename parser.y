@@ -1,52 +1,76 @@
 %{
-#include <math.h>
 #include <stdio.h>
-#define YYSTYPE double
-int yyerror (char const *s);
-extern int yylex (void);
+#include <stdlib.h>
+#include <ctype.h>
+
+int yylex();
+int get_symbol_value(char symbol);
+void yyerror (char *s);
+void update_symbol_value(char symbol, int val);
+
+int symbols[52];
 %}
 
+%start File;
+
+%union {int num; char id;}
+
 %token PRINT
-%token NUMBER
-%token PLUS MINUS TIMES DIVIDE POWER
-%token LEFT RIGHT
 %token END
+%token PLUS MINUS ASSIGN
+%token <num> NUMBER
+%token <id> IDENTIFIER
+%type <num> Expression Term
+%type <id> Assignment
 
-%left PLUS MINUS
-%left TIMES DIVIDE
-%left NEG
-%right POWER
-
-%start File
 %%
 
-File: ;
-File: File Line;
+File:
+File: File Line
 
 Line: END
 Line: Expression END
 Line: Command END
+Line: Assignment END
 
-Expression: NUMBER { $$=$1; };
-Expression: Expression PLUS Expression { $$ =$1 + $3; };
-Expression: Expression MINUS Expression { $$ = $1 - $3; };
-Expression: Expression TIMES Expression { $$ = $1 * $3; };
-Expression: Expression DIVIDE Expression { $$ = $1 / $3; };
-Expression: MINUS Expression %prec NEG { $$ = -$2; };
-Expression: PLUS Expression { $$ =$2 }
-Expression: Expression POWER Expression { $$ = pow($1, $3); };
-Expression: LEFT Expression RIGHT { $$ = $2; };
+Command: PRINT Expression { printf("%d\n", $2); }
+Assignment: IDENTIFIER ASSIGN Expression  { update_symbol_value($1,$3); }
 
-Command: PRINT Expression { printf("%f\n", $2); }
+Expression: Term {$$ = $1;}
+       	| Expression PLUS Term {$$ = $1 + $3;}
+       	| Expression MINUS Term {$$ = $1 - $3;}
+
+
+Term: NUMBER {$$ = $1;}
+	| IDENTIFIER {$$ = get_symbol_value($1);}
 
 %%
 
-int yyerror(char const *s) {
-  printf("%s\n", s);
+int computeSymbolIndex(char token)
+{
+	int idx = -1;
+	if(islower(token)) {
+		idx = token - 'a' + 26;
+	} else if(isupper(token)) {
+		idx = token - 'A';
+	}
+	return idx;
 }
 
-int main(int argc, char *argv[]) {
+int get_symbol_value(char symbol)
+{
+	int bucket = computeSymbolIndex(symbol);
+	return symbols[bucket];
+}
 
+void update_symbol_value(char symbol, int val)
+{
+	int bucket = computeSymbolIndex(symbol);
+	symbols[bucket] = val;
+}
+
+int main(int argc, char *argv[])
+{
 	if(argc <= 1) {
 		printf("Error: inform a file as program argument");
 		return 1;
@@ -62,12 +86,12 @@ int main(int argc, char *argv[]) {
 
 	stdin = f;
 
-    int ret = yyparse();
-    
-    if (ret){
-	fprintf(stderr, "%d error found.\n",ret);
-    }
-    
-    return 0;
+	int i;
+	for(i=0; i<52; i++) {
+		symbols[i] = 0;
+	}
+
+	return yyparse ( );
 }
 
+void yyerror (char *s) {fprintf (stderr, "%s\n", s);}

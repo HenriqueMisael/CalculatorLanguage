@@ -1,25 +1,27 @@
 %{
-#define YYSTYPE double
 #include "parser.tab.h"
+void yyerror (char *s);
+int yylex();
 %}
 
-white [ \t]+
-digit [0-9]
-integer {digit}+
-exponent [eE][+-]?{integer}
-real {integer}("."{integer})?{exponent}?
+white     [ \t]+
+alpha     [a-zA-Z]
+digit     [0-9]+
 
 %%
 
-{white} { }
-{real} { yylval=atof(yytext); return NUMBER; }
+{white}     { }
 
-"+" return PLUS;
-"-" return MINUS;
-"*" return TIMES;
-"/" return DIVIDE;
-"^" return POWER;
-"(" return LEFT;
-")" return RIGHT;
-"\n" return END;
-"print" return PRINT;
+"print"     return PRINT;
+"\n"        return END;
+"+"         return PLUS;
+"-"         return MINUS;
+"="         return ASSIGN;
+
+{alpha}     {yylval.id = yytext[0]; return IDENTIFIER;}
+{digit}     {yylval.num = atoi(yytext); return NUMBER;}
+.           {yyerror ("Unexpected token");}
+
+%%
+
+int yywrap (void) {return 1;}
