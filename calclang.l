@@ -14,9 +14,13 @@ digit     [0-9]+
 
 "print"     return PRINT;
 "\n"        return END;
+"("         return LEFT;
+")"         return RIGHT;
+"="         return ASSIGN;
 "+"         return PLUS;
 "-"         return MINUS;
-"="         return ASSIGN;
+"*"         return TIMES;
+"/"         return DIVIDE;
 
 {alpha}     {yylval.id = yytext[0]; return IDENTIFIER;}
 {digit}     {yylval.num = atoi(yytext); return NUMBER;}

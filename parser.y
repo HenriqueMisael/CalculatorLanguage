@@ -17,8 +17,11 @@ int symbols[52];
 
 %token PRINT
 %token END
-%token PLUS MINUS ASSIGN
+%token ASSIGN PLUS MINUS TIMES DIVIDE
+%token LEFT RIGHT
 %token <num> NUMBER
+%left PLUS MINUS
+%left TIMES DIVIDE
 %token <id> IDENTIFIER
 %type <num> Expression Term
 %type <id> Assignment
@@ -37,9 +40,11 @@ Command: PRINT Expression { printf("%d\n", $2); }
 Assignment: IDENTIFIER ASSIGN Expression  { update_symbol_value($1,$3); }
 
 Expression: Term {$$ = $1;}
+        | LEFT Expression RIGHT {$$ = $2;}
        	| Expression PLUS Term {$$ = $1 + $3;}
        	| Expression MINUS Term {$$ = $1 - $3;}
-
+       	| Expression TIMES Term {$$ = $1 * $3;}
+       	| Expression DIVIDE Term {$$ = $1 / $3;}
 
 Term: NUMBER {$$ = $1;}
 	| IDENTIFIER {$$ = get_symbol_value($1);}

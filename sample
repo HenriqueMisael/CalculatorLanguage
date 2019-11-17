@@ -1,4 +1,4 @@
 a = 1 + 2
 b = 4 + 3
 c = b - a
-print c
+print (2 * c + 2)/2
