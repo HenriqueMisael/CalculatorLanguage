@@ -4,17 +4,17 @@
 #include <ctype.h>
 #include <math.h>
 
-int yylex();
-int get_symbol_value(char symbol);
-void yyerror (char *s);
-void update_symbol_value(char symbol, int val);
+#include "symbols.h"
 
-int symbols[52];
+int yylex();
+void yyerror (char *s);
+
+extern FILE *yyin;
 %}
 
-%start File;
+%start File
 
-%union {float num; char id;}
+%union {float num; char *id;}
 
 %token PRINT
 %token END
@@ -54,29 +54,6 @@ Term: NUMBER {$$ = $1;}
 
 %%
 
-int computeSymbolIndex(char token)
-{
-	int idx = -1;
-	if(islower(token)) {
-		idx = token - 'a' + 26;
-	} else if(isupper(token)) {
-		idx = token - 'A';
-	}
-	return idx;
-}
-
-int get_symbol_value(char symbol)
-{
-	int bucket = computeSymbolIndex(symbol);
-	return symbols[bucket];
-}
-
-void update_symbol_value(char symbol, int val)
-{
-	int bucket = computeSymbolIndex(symbol);
-	symbols[bucket] = val;
-}
-
 int main(int argc, char *argv[])
 {
 	if(argc <= 1) {
@@ -92,13 +69,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	stdin = f;
-
-	int i;
-	for(i=0; i<52; i++) {
-		symbols[i] = 0;
-	}
-
+	initialize_symbol_table();
+	yyin = f;
 	return yyparse ( );
 }
 

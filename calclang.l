@@ -5,7 +5,7 @@ int yylex();
 %}
 
 white   [ \t]+
-alpha   [a-zA-Z]
+alpha   [a-zA-Z]+
 integer [0-9]+
 real    {integer}(\.{integer})?
 
@@ -24,7 +24,7 @@ real    {integer}(\.{integer})?
 "/"         return DIVIDE;
 "^"         return POWER;
 
-{alpha}     {yylval.id = yytext[0]; return IDENTIFIER;}
+{alpha}     {yylval.id = strdup(yytext); return IDENTIFIER;}
 {real}      {yylval.num = atof(yytext); return NUMBER;}
 .           {yyerror ("Unexpected token");}
 
