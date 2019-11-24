@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <malloc.h>
 #include "symbols.h"
+#include "string.h"
+#include "list.h"
 
-SYMBOL_LIST *symbols;
+LIST *symbols;
 
 extern void initialize_symbol_table() {
-    symbols = (SYMBOL_LIST *) malloc(sizeof(SYMBOL_LIST));
+    symbols = (LIST*) malloc(sizeof(LIST));
 
     symbols->head = NULL;
     symbols->tail = NULL;
@@ -15,45 +18,37 @@ SYMBOL *alloc_new_symbol(char *id, float value) {
 
     new_symbol->id = id;
     new_symbol->value = value;
-    new_symbol->next = NULL;
 
     return new_symbol;
 }
 
+int search_symbol_by_id(SYMBOL *symbol, char *id) {
+    return strcmp(symbol->id, id) == 0;
+}
+
+int search_proxy(void* symbol, void* id) {
+    return search_symbol_by_id(symbol, id);
+}
+
 extern void update_symbol_value(char *symbol, float value) {
 
+    SYMBOL *current = LIST_search(symbols, &search_proxy, symbol);
 
-    if (symbols->tail == NULL && symbols->head == NULL) {
-        SYMBOL *new_symbol_ptr = alloc_new_symbol(symbol, value);
-        symbols->head = new_symbol_ptr;
-        symbols->tail = new_symbol_ptr;
+    if(current != NULL) {
+        current->value = value;
     } else {
-        SYMBOL *current = symbols->head;
-        do {
-            if (strcmp(current->id, symbol) == 0) {
-                current->value = value;
-                return;
-            }
-            current = current->next;
-        } while (current != NULL);
-
-        SYMBOL *new_symbol_ptr = alloc_new_symbol(symbol, value);
-        symbols->tail->next = new_symbol_ptr;
-        symbols->tail = new_symbol_ptr;
+        LIST_append(symbols, alloc_new_symbol(symbol, value));
     }
 }
 
 extern float get_symbol_value(char *symbol) {
 
-    SYMBOL *current = symbols->head;
-    do {
-        if (strcmp(current->id, symbol) == 0) {
-            return current->value;
-        }
-        current = current->next;
-    } while (current != NULL);
+    SYMBOL *current = LIST_search(symbols, &search_proxy, symbol);
 
-    printf("Symbol %s is not allocated yet", symbol);
+    if (current == NULL) {
+        printf("Symbol %s not previously defined", symbol);
+        return 0.0f;
+    }
 
-    return 0.0;
+    return current->value;
 }

@@ -12,4 +12,4 @@ FLEX_TARGET(MyScanner tokens.l ${CMAKE_CURRENT_BINARY_DIR}/tokens.c)
 ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-add_executable(calclang ${BISON_MyParser_OUTPUTS} ${FLEX_MyScanner_OUTPUTS} symbols.c)
+add_executable(calclang ${BISON_MyParser_OUTPUTS} ${FLEX_MyScanner_OUTPUTS} symbols.c list.c)
