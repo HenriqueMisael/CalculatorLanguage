@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "symbols.h"
+#include "binary_tree.h"
 
 int yylex();
 void yyerror (char *s);
@@ -14,7 +15,7 @@ extern FILE *yyin;
 
 %start File
 
-%union {float num; char *id;}
+%union {float num; char *id; struct TREE_NODE *node;}
 
 %token PRINT
 %token END
@@ -25,7 +26,7 @@ extern FILE *yyin;
 %left TIMES DIVIDE
 %right POWER
 %token <id> IDENTIFIER
-%type <num> Expression Term
+%type <node> Expression
 %type <id> Assignment
 
 %%
@@ -38,19 +39,17 @@ Line: Expression END
 Line: Command END
 Line: Assignment END
 
-Command: PRINT Expression { printf("%f\n", $2); }
-Assignment: IDENTIFIER ASSIGN Expression  { update_symbol_value($1,$3); }
+Command: PRINT Expression { add_print_node($2); }
+Assignment: IDENTIFIER ASSIGN Expression  { add_assignment_node($1,$3); }
 
-Expression: Term {$$ = $1;}
+Expression: NUMBER {$$ = create_float_node(&$1);}
         | LEFT Expression RIGHT {$$ = $2;}
-       	| Expression PLUS Expression {$$ = $1 + $3;}
-       	| Expression MINUS Expression {$$ = $1 - $3;}
-       	| Expression TIMES Expression {$$ = $1 * $3;}
-       	| Expression DIVIDE Expression {$$ = $1 / $3;}
-       	| Expression POWER Expression {$$ = pow($1,$3);}
-
-Term: NUMBER {$$ = $1;}
-	| IDENTIFIER {$$ = get_symbol_value($1);}
+       	| Expression PLUS Expression {$$ = create_sum_node($1, $3);}
+       	| Expression MINUS Expression {$$ = create_minus_node($1, $3);}
+       	| Expression TIMES Expression {$$ = create_times_node($1, $3);}
+       	| Expression DIVIDE Expression {$$ = create_divide_node($1, $3);}
+       	| Expression POWER Expression {$$ = create_pow_node($1,$3);}
+       	| IDENTIFIER {$$ = create_symbol_node($1);}
 
 %%
 
@@ -69,9 +68,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	initialize_semantic_tree();
 	initialize_symbol_table();
 	yyin = f;
-	return yyparse ( );
+	yyparse ();
+
+	execute_all();
 }
 
 void yyerror (char *s) {fprintf (stderr, "%s\n", s);}

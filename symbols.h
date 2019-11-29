@@ -8,8 +8,9 @@ typedef struct {
     float value;
 } SYMBOL;
 
-float get_symbol_value(char *symbol);
+SYMBOL* get_symbol(char *symbol);
 void update_symbol_value(char *symbol, float value);
-SYMBOL *alloc_new_symbol(char *id, float value);
+SYMBOL *alloc_new_symbol(char *id);
+int is_allocated(char *symbol);
 
 #endif //CALCULATORLANGUAGE_SYMBOLS_H

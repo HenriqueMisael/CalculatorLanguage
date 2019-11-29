@@ -28,3 +28,12 @@ void *LIST_search(LIST *list, int (*func_ptr)(void *, void *), void *extra_args)
 
     return NULL;
 }
+
+LIST *LIST_new() {
+    LIST *new_list = (LIST*) malloc(sizeof(LIST));
+
+    new_list->head = NULL;
+    new_list->tail = NULL;
+
+    return new_list;
+}
