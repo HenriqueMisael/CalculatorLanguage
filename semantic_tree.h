@@ -13,9 +13,11 @@
 #define DIVIDE_OPERATION_NODE 7
 #define POWER_OPERATION_NODE 8
 #define PRINT_NODE 9
+#define INT_NODE 10
 
 LIST *semantic_trees_list;
 
+TREE_NODE* create_integer_node(const int *value_ptr);
 TREE_NODE* create_float_node(const float *value_ptr);
 TREE_NODE* create_symbol_node(char *id);
 TREE_NODE* create_assignment_node(TREE_NODE *symbol, TREE_NODE *value);

@@ -3,6 +3,7 @@
 #include "symbols.h"
 #include "string.h"
 #include "list.h"
+#include "semantic_tree.h"
 
 LIST *symbols;
 
@@ -10,10 +11,11 @@ void initialize_symbol_table() {
     symbols = LIST_new();
 }
 
-SYMBOL *alloc_new_symbol(char *id) {
+SYMBOL *alloc_new_symbol(char *id, int value_type) {
     SYMBOL *new_symbol = (SYMBOL *) malloc(sizeof(SYMBOL));
 
     new_symbol->id = id;
+    new_symbol->value_type = value_type;
 
     return new_symbol;
 }
@@ -26,12 +28,12 @@ int search_proxy(void *symbol, void *id) {
     return search_symbol_by_id(symbol, id);
 }
 
-void update_symbol_value(char *symbol, float value) {
+void update_symbol_value(char *symbol, VALUE *value, int value_type) {
 
     SYMBOL *current = LIST_search(symbols, &search_proxy, symbol);
 
     if (current == NULL) {
-        current = alloc_new_symbol(symbol);
+        current = alloc_new_symbol(symbol, value_type);
         LIST_append(symbols, current);
     }
 

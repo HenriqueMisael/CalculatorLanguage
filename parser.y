@@ -15,17 +15,21 @@ extern FILE *yyin;
 
 %start File
 
-%union {float num; char *id; struct TREE_NODE *node;}
+%union {float num; int integer; char *id; struct TREE_NODE *node;}
 
 %token PRINT
 %token END
 %token ASSIGN PLUS MINUS TIMES DIVIDE POWER
 %token LEFT RIGHT
+%token <integer> INTEGER
 %token <num> NUMBER
+%token <id> IDENTIFIER
+
+%right ASSIGN
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right POWER
-%token <id> IDENTIFIER
+
 %type <node> Expression
 %type <id> Assignment
 
@@ -43,6 +47,7 @@ Command: PRINT Expression { add_print_node($2); }
 Assignment: IDENTIFIER ASSIGN Expression  { add_assignment_node($1,$3); }
 
 Expression: NUMBER {$$ = create_float_node(&$1);}
+	| INTEGER {$$ = create_integer_node(&$1);}
         | LEFT Expression RIGHT {$$ = $2;}
        	| Expression PLUS Expression {$$ = create_sum_node($1, $3);}
        	| Expression MINUS Expression {$$ = create_minus_node($1, $3);}
