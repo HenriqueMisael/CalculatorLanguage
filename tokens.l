@@ -2,32 +2,37 @@
 #include "parser.tab.h"
 void yyerror (char *s);
 int yylex();
+
+extern int line;
+extern int column;
 %}
 
-white   [ \t]+
-alpha   [a-zA-Z]+
-integer [0-9]+
-real    {integer}(\.{integer})
+line_break  [\n]
+white       [ \t]+
+alpha       [a-zA-Z]+
+integer     [0-9]+
+real        {integer}(\.{integer})
 
 %%
 
 {white}     { }
 
-"print"     return PRINT;
-"\n"        return END;
-"("         return LEFT;
-")"         return RIGHT;
-"="         return ASSIGN;
-"+"         return PLUS;
-"-"         return MINUS;
-"*"         return TIMES;
-"/"         return DIVIDE;
-"^"         return POWER;
+"print"     {column += 5; return PRINT;}
+";"         {column++; return END;}
+"("         {column++; return LEFT;}
+")"         {column++; return RIGHT;}
+"="         {column++; return ASSIGN;}
+"+"         {column++; return PLUS;}
+"-"         {column++; return MINUS;}
+"*"         {column++; return TIMES;}
+"/"         {column++; return DIVIDE;}
+"^"         {column++; return POWER;}
 
-{alpha}     {yylval.id = strdup(yytext); return IDENTIFIER;}
-{real}      {yylval.num = atof(yytext); return NUMBER;}
-{integer}   {yylval.integer = atoi(yytext); return INTEGER;}
-.           {yyerror ("Unexpected token");}
+{alpha}         {column += strlen(yytext); yylval.id = strdup(yytext); return IDENTIFIER;}
+{real}          {column += strlen(yytext); yylval.num = atof(yytext); return NUMBER;}
+{integer}       {column += strlen(yytext); yylval.integer = atoi(yytext); return INTEGER;}
+{line_break}    {line++; column = 0;}
+.               {column++; yyerror ("Unexpected token");}
 
 %%
 

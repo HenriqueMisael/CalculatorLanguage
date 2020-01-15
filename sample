@@ -1,7 +1,10 @@
-a = ((4-6+3) * 7 ^ 3)/7
-print a
-a = 12
-print a
-b = 12.0
-c = a + b
-print c
+a = ((4-6+3) * 7 ^ 3)/7;
+print a;
+a = 12;
+print a;
+b = 12.0;
+
+
+c = a + b;
+print c;
+8 + 8;

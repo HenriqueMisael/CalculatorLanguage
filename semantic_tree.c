@@ -10,55 +10,51 @@ void initialize_semantic_tree() {
     semantic_trees_list = LIST_new();
 }
 
-TREE_NODE *create_integer_node(const int *value_ptr) {
+TREE_NODE *create_integer_node(int line, int column, const int *value_ptr) {
     int *value = (int *) malloc(sizeof(int));
     *value = *value_ptr;
-    return BINARY_TREE__create_node(INT_NODE, value);
+    return BINARY_TREE__create_node(INT_NODE, value, line, column);
 }
 
-TREE_NODE *create_float_node(const float *value_ptr) {
+TREE_NODE *create_float_node(int line, int column, const float *value_ptr) {
     float *value = (float *) malloc(sizeof(float));
     *value = *value_ptr;
-    return BINARY_TREE__create_node(FLOAT_NODE, value);
+    return BINARY_TREE__create_node(FLOAT_NODE, value, line, column);
 }
 
-TREE_NODE *create_symbol_node(char *id) {
-    return BINARY_TREE__create_node(SYMBOL_NODE, id);
+TREE_NODE *create_symbol_node(int line, int column, char *id) {
+    return BINARY_TREE__create_node(SYMBOL_NODE, id, line, column);
 }
 
-TREE_NODE *create_sum_node(TREE_NODE *left_value, TREE_NODE *right_value) {
-    return BINARY_TREE__create_binary_node(SUM_OPERATION_NODE, left_value, right_value);
+TREE_NODE *create_sum_node(int line, int column, TREE_NODE *left_value, TREE_NODE *right_value) {
+    return BINARY_TREE__create_binary_node(SUM_OPERATION_NODE, left_value, right_value, line, column);
 }
 
-TREE_NODE *create_minus_node(TREE_NODE *left_value, TREE_NODE *right_value) {
-    return BINARY_TREE__create_binary_node(MINUS_OPERATION_NODE, left_value, right_value);
+TREE_NODE *create_minus_node(int line, int column, TREE_NODE *left_value, TREE_NODE *right_value) {
+    return BINARY_TREE__create_binary_node(MINUS_OPERATION_NODE, left_value, right_value, line, column);
 }
 
-TREE_NODE *create_times_node(TREE_NODE *left_value, TREE_NODE *right_value) {
-    return BINARY_TREE__create_binary_node(TIMES_OPERATION_NODE, left_value, right_value);
+TREE_NODE *create_times_node(int line, int column, TREE_NODE *left_value, TREE_NODE *right_value) {
+    return BINARY_TREE__create_binary_node(TIMES_OPERATION_NODE, left_value, right_value, line, column);
 }
 
-TREE_NODE *create_divide_node(TREE_NODE *left_value, TREE_NODE *right_value) {
-    return BINARY_TREE__create_binary_node(DIVIDE_OPERATION_NODE, left_value, right_value);
+TREE_NODE *create_divide_node(int line, int column, TREE_NODE *left_value, TREE_NODE *right_value) {
+    return BINARY_TREE__create_binary_node(DIVIDE_OPERATION_NODE, left_value, right_value, line, column);
 }
 
-TREE_NODE *create_pow_node(TREE_NODE *left_value, TREE_NODE *right_value) {
-    return BINARY_TREE__create_binary_node(POWER_OPERATION_NODE, left_value, right_value);
+TREE_NODE *create_pow_node(int line, int column, TREE_NODE *left_value, TREE_NODE *right_value) {
+    return BINARY_TREE__create_binary_node(POWER_OPERATION_NODE, left_value, right_value, line, column);
 }
 
-void add_print_node(TREE_NODE *expression_node) {
-    LIST_append(semantic_trees_list, BINARY_TREE__create_binary_node(PRINT_NODE, NULL, expression_node));
+void add_print_node(int line, int column, TREE_NODE *expression_node) {
+    LIST_append(semantic_trees_list, BINARY_TREE__create_binary_node(PRINT_NODE, NULL, expression_node, line, column));
 }
 
-void add_assignment_node(char *symbol, TREE_NODE *value) {
-    TREE_NODE *assignment_node = BINARY_TREE__create_binary_node(ASSIGNMENT_NODE, NULL, value);
+void add_assignment_node(int line, int column, char *symbol, TREE_NODE *value) {
+    TREE_NODE *assignment_node = BINARY_TREE__create_binary_node(ASSIGNMENT_NODE, NULL, value, line, column);
     assignment_node->content = symbol;
 
     LIST_append(semantic_trees_list, assignment_node);
-}
-
-void print_error(char *error) {
-    printf("%s\n", error);
 }
 
 int check_value_type(TREE_NODE *tree_node) {
@@ -101,30 +97,23 @@ void *evaluate(const TREE_NODE *tree_node) {
             if (value_type == FLOAT_NODE)
                 value->floating = *((float *) evaluate(tree_node->right));
             else if (value_type == INT_NODE) value->integer = *((int *) evaluate(tree_node->right));
-            else print_error("Operation not allowed: to assign a non number value to a variable");
+            else print_error(ERROR_OP_NOT_ALLOWED_ASSIGN_NON_NUMBER, tree_node->line, tree_node->column);
 
             if (is_allocated(tree_node->content) && get_symbol(tree_node->content)->value_type != value_type) {
                 print_error(
-                        "Operation not allowed: to assign a new value to a variable allocated to another value type");
+                        ERROR_OP_NOT_ALLOWED_ASSIGN_OTHER_TYPE, tree_node->line, tree_node->column);
             }
 
             update_symbol_value(tree_node->content, value, value_type);
 
-            return create_symbol_node(tree_node->content);
+            return create_symbol_node(tree_node->line, tree_node->column, tree_node->content);
         }
 
         case SUM_OPERATION_NODE: {
             int left_value_type = check_value_type(tree_node->left);
             int right_value_type = check_value_type(tree_node->right);
             if (left_value_type != right_value_type || (left_value_type != INT_NODE && left_value_type != FLOAT_NODE)) {
-
-                char *error_message = malloc(256);
-                sprintf(error_message, "Operation not allowed: to make a sum operation between %s and %s",
-                        left_value_type == INT_NODE ? "integer" : left_value_type == FLOAT_NODE ? "float"
-                                                                                                : "other",
-                        right_value_type == INT_NODE ? "integer" : right_value_type == FLOAT_NODE ? "float"
-                                                                                                : "other");
-                print_error(error_message);
+                print_error(ERROR_OP_NOT_ALLOWED_SUM_OP_BETWEEN_DIFFERENT_TYPES, tree_node->line, tree_node->column);
             }
 
             if (left_value_type == FLOAT_NODE) {
@@ -134,8 +123,6 @@ void *evaluate(const TREE_NODE *tree_node) {
                 float *result_ptr = malloc(sizeof(float));
                 *result_ptr = left_value + right_value;
 
-//                printf("%f + %f = %f\n", left_value, right_value, *result_ptr);
-
                 return result_ptr;
             } else {
                 int left_value = *((int *) evaluate(tree_node->left));
@@ -143,8 +130,6 @@ void *evaluate(const TREE_NODE *tree_node) {
 
                 int *result_ptr = malloc(sizeof(int));
                 *result_ptr = left_value + right_value;
-
-//                printf("%d + %d = %d\n", left_value, right_value, *result_ptr);
 
                 return result_ptr;
             }
@@ -153,14 +138,7 @@ void *evaluate(const TREE_NODE *tree_node) {
             int left_value_type = check_value_type(tree_node->left);
             int right_value_type = check_value_type(tree_node->right);
             if (left_value_type != right_value_type || (left_value_type != INT_NODE && left_value_type != FLOAT_NODE)) {
-
-                char *error_message = malloc(256);
-                sprintf(error_message, "Operation not allowed: to make a minus operation between %s and %s",
-                        left_value_type == INT_NODE ? "integer" : left_value_type == FLOAT_NODE ? "float"
-                                                                                                : "other",
-                        left_value_type == INT_NODE ? "integer" : left_value_type == FLOAT_NODE ? "float"
-                                                                                                : "other");
-                print_error(error_message);
+                print_error(ERROR_OP_NOT_ALLOWED_MINUS_OP_BETWEEN_DIFFERENT_TYPES, tree_node->line, tree_node->column);
             }
 
             if (left_value_type == FLOAT_NODE) {
@@ -170,8 +148,6 @@ void *evaluate(const TREE_NODE *tree_node) {
                 float *result_ptr = malloc(sizeof(float));
                 *result_ptr = left_value - right_value;
 
-//                printf("%f - %f = %f\n", left_value, right_value, *result_ptr);
-
                 return result_ptr;
             } else {
                 int left_value = *((int *) evaluate(tree_node->left));
@@ -179,8 +155,6 @@ void *evaluate(const TREE_NODE *tree_node) {
 
                 int *result_ptr = malloc(sizeof(int));
                 *result_ptr = left_value - right_value;
-
-//                printf("%d - %d = %d\n", left_value, right_value, *result_ptr);
 
                 return result_ptr;
             }
@@ -199,33 +173,26 @@ void *evaluate(const TREE_NODE *tree_node) {
 
                 *left_value_ptr = value;
 
-//                printf("%d", value);
             } else if (left_value_type == FLOAT_NODE) {
                 left_value_ptr = (float *) evaluate(tree_node->left);
-//                printf("%f", *(float *) left_value_ptr);
             }
-//            printf(" * ");
             if (right_value_type == INT_NODE) {
                 int value = *(int *) evaluate(tree_node->right);
                 right_value_ptr = (float *) malloc(sizeof(float));
 
                 *right_value_ptr = value;
 
-//                printf("%d", value);
             } else if (right_value_type == FLOAT_NODE) {
                 right_value_ptr = (float *) evaluate(tree_node->right);
-//                printf("%f", *(float *) right_value_ptr);
             }
 
             *result_ptr = *left_value_ptr * *right_value_ptr;
 
-            if (left_value_ptr == FLOAT_NODE || right_value_ptr == FLOAT_NODE) {
-//                printf(" = %f\n", *result_ptr);
+            if (left_value_type == FLOAT_NODE || right_value_type == FLOAT_NODE) {
                 return result_ptr;
             }
             int *integer_result_ptr = (int *) malloc(sizeof(int));
             *integer_result_ptr = *result_ptr;
-//            printf(" = %d\n", *integer_result_ptr);
             return integer_result_ptr;
         }
         case DIVIDE_OPERATION_NODE: {
@@ -242,33 +209,26 @@ void *evaluate(const TREE_NODE *tree_node) {
 
                 *left_value_ptr = value;
 
-//                printf("%d", value);
             } else if (left_value_type == FLOAT_NODE) {
                 left_value_ptr = (float *) evaluate(tree_node->left);
-//                printf("%f", *(float *) left_value_ptr);
             }
-//            printf(" / ");
             if (right_value_type == INT_NODE) {
                 int value = *(int *) evaluate(tree_node->right);
                 right_value_ptr = (float *) malloc(sizeof(float));
 
                 *right_value_ptr = value;
 
-//                printf("%d", value);
             } else if (right_value_type == FLOAT_NODE) {
                 right_value_ptr = (float *) evaluate(tree_node->right);
-//                printf("%f", *(float *) right_value_ptr);
             }
 
             *result_ptr = *left_value_ptr / *right_value_ptr;
 
             if (left_value_ptr == FLOAT_NODE || right_value_ptr == FLOAT_NODE) {
-//                printf(" = %f\n", *result_ptr);
                 return result_ptr;
             }
             int *integer_result_ptr = (int *) malloc(sizeof(int));
             *integer_result_ptr = *result_ptr;
-//            printf(" = %d\n", *integer_result_ptr);
             return integer_result_ptr;
         }
         case POWER_OPERATION_NODE: {
@@ -285,33 +245,26 @@ void *evaluate(const TREE_NODE *tree_node) {
 
                 *left_value_ptr = value;
 
-//                printf("%d", value);
             } else if (left_value_type == FLOAT_NODE) {
                 left_value_ptr = (float *) evaluate(tree_node->left);
-//                printf("%f", *(float *) left_value_ptr);
             }
-//            printf(" ^ ");
             if (right_value_type == INT_NODE) {
                 int value = *(int *) evaluate(tree_node->right);
                 right_value_ptr = (float *) malloc(sizeof(float));
 
                 *right_value_ptr = value;
 
-//                printf("%d", value);
             } else if (right_value_type == FLOAT_NODE) {
                 right_value_ptr = (float *) evaluate(tree_node->right);
-//                printf("%f", *(float *) right_value_ptr);
             }
 
             *result_ptr = powf(*left_value_ptr, *right_value_ptr);
 
-            if (left_value_ptr == FLOAT_NODE || right_value_ptr == FLOAT_NODE) {
-//                printf(" = %f\n", *result_ptr);
+            if (left_value_type == FLOAT_NODE || right_value_type == FLOAT_NODE) {
                 return result_ptr;
             }
             int *integer_result_ptr = (int *) malloc(sizeof(int));
             *integer_result_ptr = *result_ptr;
-//            printf(" = %d\n", *integer_result_ptr);
             return integer_result_ptr;
         }
         case PRINT_NODE: {
@@ -350,4 +303,28 @@ void execute_all() {
         evaluate(list_element->content);
         list_element = list_element->next;
     }
+}
+
+void print_error(int code, int line, int column) {
+    char error[256];
+    switch (code) {
+        case ERROR_UNUSED_EXPRESSION:
+            strcpy(error, "Unused expression");
+            break;
+        case ERROR_OP_NOT_ALLOWED_ASSIGN_NON_NUMBER:
+            strcpy(error, "Operation not allowed: to assign a non number value to a variable");
+            break;
+        case ERROR_OP_NOT_ALLOWED_ASSIGN_OTHER_TYPE:
+            strcpy(error, "Operation not allowed: to assign a new value to a variable allocated to another value type");
+            break;
+        case ERROR_OP_NOT_ALLOWED_SUM_OP_BETWEEN_DIFFERENT_TYPES:
+            strcpy(error, "Operation not allowed: to make a sum operation between different types");
+            break;
+        case ERROR_OP_NOT_ALLOWED_MINUS_OP_BETWEEN_DIFFERENT_TYPES:
+            strcpy(error, "Operation not allowed: to make a minus operation between different types");
+            break;
+        default:
+            strcpy(error, "Unknown error");
+    }
+    printf("(%d:%d) %s", line, column, error);
 }

@@ -10,6 +10,9 @@
 int yylex();
 void yyerror (char *s);
 
+int line = 1;
+int column;
+
 extern FILE *yyin;
 %}
 
@@ -39,22 +42,21 @@ File:
 File: File Line
 
 Line: END
-Line: Expression END
 Line: Command END
 Line: Assignment END
 
-Command: PRINT Expression { add_print_node($2); }
-Assignment: IDENTIFIER ASSIGN Expression  { add_assignment_node($1,$3); }
+Command: PRINT Expression { add_print_node(line, column, $2); }
+Assignment: IDENTIFIER ASSIGN Expression  { add_assignment_node(line, column, $1,$3); }
 
-Expression: NUMBER {$$ = create_float_node(&$1);}
-	| INTEGER {$$ = create_integer_node(&$1);}
+Expression: NUMBER {$$ = create_float_node(line, column, &$1);}
+	| INTEGER {$$ = create_integer_node(line, column, &$1);}
         | LEFT Expression RIGHT {$$ = $2;}
-       	| Expression PLUS Expression {$$ = create_sum_node($1, $3);}
-       	| Expression MINUS Expression {$$ = create_minus_node($1, $3);}
-       	| Expression TIMES Expression {$$ = create_times_node($1, $3);}
-       	| Expression DIVIDE Expression {$$ = create_divide_node($1, $3);}
-       	| Expression POWER Expression {$$ = create_pow_node($1,$3);}
-       	| IDENTIFIER {$$ = create_symbol_node($1);}
+       	| Expression PLUS Expression {$$ = create_sum_node(line, column, $1, $3);}
+       	| Expression MINUS Expression {$$ = create_minus_node(line, column, $1, $3);}
+       	| Expression TIMES Expression {$$ = create_times_node(line, column, $1, $3);}
+       	| Expression DIVIDE Expression {$$ = create_divide_node(line, column, $1, $3);}
+       	| Expression POWER Expression {$$ = create_pow_node(line, column, $1,$3);}
+       	| IDENTIFIER {$$ = create_symbol_node(line, column, $1);}
 
 %%
 
