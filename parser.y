@@ -38,10 +38,11 @@ extern FILE *yyin;
 
 %%
 
-File:
+File: Line
 File: File Line
+File: File EmptyLine
 
-Line: END
+EmptyLine: END
 Line: Command END
 Line: Assignment END
 
