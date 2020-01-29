@@ -224,7 +224,7 @@ void *evaluate(const TREE_NODE *tree_node) {
 
             *result_ptr = *left_value_ptr / *right_value_ptr;
 
-            if (left_value_ptr == FLOAT_NODE || right_value_ptr == FLOAT_NODE) {
+            if (left_value_type == FLOAT_NODE || right_value_type == FLOAT_NODE) {
                 return result_ptr;
             }
             int *integer_result_ptr = (int *) malloc(sizeof(int));

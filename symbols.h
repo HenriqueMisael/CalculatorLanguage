@@ -3,7 +3,7 @@
 
 #include "list.h"
 
-typedef union {float floating; int integer} VALUE;
+typedef union {float floating; int integer;} VALUE;
 
 typedef struct {
     char *id;
